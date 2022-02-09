@@ -48,6 +48,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.run = exports.commands = void 0;
+var discord_js_1 = require("discord.js");
 var requests_1 = require("../utils/requests");
 var SlashCommandBuilder = require('@discordjs/builders').SlashCommandBuilder;
 exports.commands = [
@@ -69,22 +70,43 @@ exports.commands = [
     }))
 ];
 var run = function (interaction) { return __awaiter(void 0, void 0, void 0, function () {
-    var originId, platform, result, e_1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var originId, platform, result, field, legend, _i, _a, tracker, trackerName, embed, e_1;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
                 originId = interaction.options.getString('username');
                 platform = interaction.options.get('plateform');
-                _a.label = 1;
+                _b.label = 1;
             case 1:
-                _a.trys.push([1, 3, , 4]);
+                _b.trys.push([1, 3, , 4]);
                 return [4 /*yield*/, (0, requests_1.default)("player", "GET", null, { origin_id: originId, platform: platform })];
             case 2:
-                result = _a.sent();
-                interaction.reply({ content: JSON.stringify(result.account) });
+                result = _b.sent();
+                if (result) {
+                    field = [];
+                    legend = result.legends.selected;
+                    for (_i = 0, _a = legend.trackers; _i < _a.length; _i++) {
+                        tracker = _a[_i];
+                        trackerName = tracker.name.split('_');
+                        trackerName = trackerName.join(' ');
+                        trackerName = trackerName.charAt(0).toUpperCase() + trackerName.slice(1);
+                        console.log(tracker);
+                        field.push({ name: trackerName, value: "".concat(tracker.value), inline: true });
+                    }
+                    embed = new discord_js_1.MessageEmbed()
+                        .setColor('#851a2a')
+                        .setTitle("".concat(result.account.username, "'s statistics"))
+                        .setDescription("LVL **".concat(result.account.level, "**\nRank **").concat(result.account.rank.rank_score, " RP**\n\nPlaying **").concat(legend.name, "**"))
+                        .setFields(field)
+                        .setFooter({ text: "Player ".concat(result.session.online ? 'online' : 'offline', " - Created by Nave") });
+                    interaction.reply({ embeds: [embed] });
+                }
+                else {
+                    interaction.reply({ content: 'hmm, something went wrong' });
+                }
                 return [3 /*break*/, 4];
             case 3:
-                e_1 = _a.sent();
+                e_1 = _b.sent();
                 console.log(e_1);
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];

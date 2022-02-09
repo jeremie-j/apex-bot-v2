@@ -1,5 +1,6 @@
-import { CommandInteraction } from "discord.js";
+import { CommandInteraction,MessageEmbed } from "discord.js";
 import request from '../utils/requests'
+
 
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
@@ -30,7 +31,27 @@ export const run = async (interaction: CommandInteraction) => {
 
   try {
     const result = await request("player", "GET", null, { origin_id: originId, platform: platform })
-    interaction.reply({ content: JSON.stringify(result.account) })
+    if (result){
+      const field = []
+      const legend = result.legends.selected
+      for (const tracker of legend.trackers){
+        let trackerName = tracker.name.split('_')
+        trackerName=trackerName.join(' ')
+        trackerName = trackerName.charAt(0).toUpperCase() +  trackerName.slice(1)
+        console.log(tracker)
+        field.push({name: trackerName, value:  `${tracker.value}`, inline: true})
+      }
+      const embed = new MessageEmbed()
+          .setColor('#851a2a')
+          .setTitle(`${result.account.username}'s statistics`)
+          .setDescription(`LVL **${result.account.level}**\nRank **${result.account.rank.rank_score} RP**\n\nPlaying **${legend.name}**`)
+          .setFields(field)
+          .setFooter({text:`Player ${result.session.online ? 'online' : 'offline'} - Created by Nave`})
+          interaction.reply({embeds:[embed]})
+    }else{
+      interaction.reply({ content: 'hmm, something went wrong' })
+    }
+    
   } catch (e) {
     console.log(e)
   }
