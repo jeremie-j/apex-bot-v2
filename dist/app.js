@@ -46,4 +46,4 @@ client.on('ready', function () {
 //     }
 // }, 3000)
 client.login(process.env.DISCORD_CLIENT_TOKEN);
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=app.js.map

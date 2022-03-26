@@ -50,6 +50,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.run = exports.commands = void 0;
 var discord_js_1 = require("discord.js");
 var requests_1 = require("../utils/requests");
+var emotes_1 = require("../utils/emotes");
+var legends_1 = require("../utils/legends");
+var string_1 = require("../utils/string");
 var SlashCommandBuilder = require('@discordjs/builders').SlashCommandBuilder;
 exports.commands = [
     __assign({}, new SlashCommandBuilder()
@@ -61,6 +64,13 @@ exports.commands = [
             .setRequired(true);
     })
         .addStringOption(function (option) {
+        option.setName('legend')
+            .setDescription('Legend name for stats')
+            .setRequired(false);
+        legends_1.legendsList.map(function (legend_name) { option.addChoice((0, string_1.capitalize)(legend_name), legend_name); });
+        return option;
+    })
+        .addStringOption(function (option) {
         return option.setName('plateform')
             .setDescription('The platform of the player (Default PC)')
             .addChoice('PC', 'PC')
@@ -70,11 +80,12 @@ exports.commands = [
     }))
 ];
 var run = function (interaction) { return __awaiter(void 0, void 0, void 0, function () {
-    var originId, platform, result, field, legend, _i, _a, tracker, trackerName, embed, e_1;
+    var originId, selectedLegend, platform, result, field, legend, specials_trackers, _i, _a, tracker, trackerName, username, accountLevel, rankdBadge, rankName, rankScore, legendName, embed, e_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 originId = interaction.options.getString('username');
+                selectedLegend = interaction.options.getString('legend');
                 platform = interaction.options.get('plateform');
                 _b.label = 1;
             case 1:
@@ -84,21 +95,44 @@ var run = function (interaction) { return __awaiter(void 0, void 0, void 0, func
                 result = _b.sent();
                 if (result) {
                     field = [];
-                    legend = result.legends.selected;
+                    legend = void 0;
+                    if (selectedLegend) {
+                        legend = result.legends.all[selectedLegend];
+                        if (legend === undefined) {
+                            interaction.reply({ content: 'No stats found for this player with ' + selectedLegend + ' legend' });
+                        }
+                    }
+                    else {
+                        legend = result.legends.selected;
+                    }
+                    specials_trackers = ["specialEvent_kills", "specialEvent_wins", "specialEvent_damage"];
                     for (_i = 0, _a = legend.trackers; _i < _a.length; _i++) {
                         tracker = _a[_i];
-                        trackerName = tracker.name.split('_');
-                        trackerName = trackerName.join(' ');
-                        trackerName = trackerName.charAt(0).toUpperCase() + trackerName.slice(1);
-                        console.log(tracker);
+                        trackerName = void 0;
+                        if (specials_trackers.includes(tracker.name)) {
+                            trackerName = (0, string_1.capitalize)(tracker.name.split('_').at(-1));
+                        }
+                        else {
+                            trackerName = (0, string_1.capitalize)(tracker.name.split('_').join(' '));
+                        }
                         field.push({ name: trackerName, value: "".concat(tracker.value), inline: true });
                     }
+                    username = result.account.username;
+                    accountLevel = result.account.level;
+                    rankdBadge = emotes_1.badges[result.account.rank.rank_name];
+                    rankName = (0, string_1.capitalize)(result.account.rank.rank_name) + ' ' + result.account.rank.rank_division;
+                    rankScore = result.account.rank.rank_score;
+                    legendName = (0, string_1.capitalize)(legend.name);
                     embed = new discord_js_1.MessageEmbed()
                         .setColor('#851a2a')
-                        .setTitle("".concat(result.account.username, "'s statistics"))
-                        .setDescription("LVL **".concat(result.account.level, "**\nRank **").concat(result.account.rank.rank_score, " RP**\n\nPlaying **").concat(legend.name, "**"))
+                        .setTitle("".concat(username, "'s statistics"))
+                        .setDescription("".concat(emotes_1.badges.level, " **LVL ").concat(accountLevel, "**\n") +
+                        "".concat(rankdBadge, " **").concat(rankName, "** (").concat(rankScore, " RP)\n") +
+                        "Currently playing **".concat((0, string_1.capitalize)(result.legends.selected.name), "**\n\n") +
+                        "__**".concat(legendName, " Statistics:**__"))
                         .setFields(field)
-                        .setFooter({ text: "Player ".concat(result.session.online ? 'online' : 'offline', " - Created by Nave") });
+                        .setImage("https://cdn.apex-bot.defou.fr//banners/".concat(legend.name, ".jpeg"))
+                        .setFooter({ text: "Player ".concat(result.session.online ? 'online' : 'offline', " - Created by PotagerDeNavets") });
                     interaction.reply({ embeds: [embed] });
                 }
                 else {

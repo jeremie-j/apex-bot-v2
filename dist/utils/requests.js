@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var BACKEND_URL = 'http://127.0.0.1:8090/';
+var BACKEND_URL = 'http://127.0.0.1:8000/';
 var PREFIX = '';
 var node_fetch_1 = require("node-fetch");
 function request(url, method, body, params) {
